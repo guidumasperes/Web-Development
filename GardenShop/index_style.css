@@ -1,0 +1,40 @@
+/*Tags style*/
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden; /*Don't add scroll bars*/
+}
+
+header {
+	background-color: AliceBlue;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+	font-family: Lucida Console;
+}
+
+li {
+	float: right;     /*Put elements to the right*/
+}
+
+li a {
+	display: block;
+	color: #66bfbf;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+/*Tags transitions*/
+li a:hover {
+	background-color: #e0ece4;
+}
+
+/*Classe style*/
+.logo {
+	float: left;
+	padding: 14px 16px;
+}
