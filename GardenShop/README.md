@@ -1,0 +1,2 @@
+# Garden Shop
+This project is for educational purpose only and it's not intended to be used for commercial uses, all images here were downloaded in these two websites: https://www.freeimages.com and https://pixabay.com. 

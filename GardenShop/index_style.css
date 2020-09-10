@@ -28,13 +28,60 @@ li a {
 	text-decoration: none;
 }
 
+img + p {            /*Every p after img*/
+	visibility: hidden;
+	opacity: 0;
+	transition: visibility 2.5s, opacity 1.5s;
+}
+
+button {
+	border-radius: 10px;
+	height: 40px;
+	width: 90px;
+}
+
+footer { /*Fixed footer*/
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	text-align: center;
+}
 /*Tags transitions*/
 li a:hover {
 	background-color: #e0ece4;
+}
+
+img:hover + p {
+	visibility: visible;
+	opacity: 1;
 }
 
 /*Classe style*/
 .logo {
 	float: left;
 	padding: 14px 16px;
+}
+
+.row {
+	display: flex;
+}
+
+.column {
+	flex: 33.33%;
+	padding: 5px;
+	border: solid 2px;
+	margin: 10px 10px 10px 10px;
+	border-radius: 10px;
+}
+
+/*Media queries*/
+@media screen and (max-width: 500px) {
+	header a {
+		float: none;
+		display: block;
+		text-align: left;
+    }
+	.row {
+		width: 100%;
+  }
 }
