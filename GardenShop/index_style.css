@@ -75,7 +75,7 @@ img:hover + p {
 }
 
 /*Media queries*/
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 500px) { /*Not working, need to add a responsive header and responsive images later!*/
 	header a {
 		float: none;
 		display: block;
