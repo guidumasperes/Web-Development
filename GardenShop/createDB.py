@@ -7,6 +7,6 @@ db = client["GardenShopDB"]
 collectionOne = db["Users"]
 collectionTwo = db["Products"]
 
-dic = {"email": "Ricardo@hotmail.com", "pass": "R13"}
+dic = {"email": "ricardo@hotmail.com", "pass": "R13", "logged": "no"}
 
 collectionOne.insert_one(dic)

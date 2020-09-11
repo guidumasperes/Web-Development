@@ -1,9 +1,21 @@
 function loginPage() {
-	console.log("Redirect to Welcome!");
+	var email = document.getElementById("email");
+	var pass = document.getElementById("pass");
+	var myObj = {e_mail: email.value, password: pass.value};
+	var myJSON = JSON.stringify(myObj);
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+    	if(this.readyState === 4 && this.status === 200) {
+			console.log(this.responseText);
+			window.location.href = this.responseText;                    // redirect to the proper page
+		}
+  	};
+	xhttp.open("POST", "http://localhost:8080/auth", true);
+	xhttp.send(myJSON);
 }
 
 function createConfirmation() {
-	var email = document.getElementById("email");				 // Obtain email and password from input
+	var email = document.getElementById("email");				         // Obtain email and password from input
 	var pass = document.getElementById("pass");
 	var myObj = {e_mail: email.value, password: pass.value};  			// Create json
 	var myJSON = JSON.stringify(myObj);
