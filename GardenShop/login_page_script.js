@@ -3,15 +3,17 @@ function loginPage() {
 	var pass = document.getElementById("pass");
 	var myObj = {e_mail: email.value, password: pass.value};
 	var myJSON = JSON.stringify(myObj);
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-    	if(this.readyState === 4 && this.status === 200) {
-			console.log(this.responseText);
-			window.location.href = this.responseText;                    // redirect to the proper page
-		}
-  	};
-	xhttp.open("POST", "http://localhost:8080/auth", true);
-	xhttp.send(myJSON);
+	httpGetAsync("http://localhost:8080/auth", myJSON, openProperPage);
+}
+
+function httpGetAsync(url, info, callback) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("POST", url, true); // true for asynchronous 
+    xmlHttp.send(info);
 }
 
 function createConfirmation() {
@@ -19,29 +21,9 @@ function createConfirmation() {
 	var pass = document.getElementById("pass");
 	var myObj = {e_mail: email.value, password: pass.value};  			// Create json
 	var myJSON = JSON.stringify(myObj);
-	var xhttp = new XMLHttpRequest();             					    // Prepare http request to server
-	child = document.getElementById("child");
-	var header = document.getElementById("header");
-	xhttp.onreadystatechange = function() {
-    	if(this.readyState === 4 && this.status === 200) {
-    		if(this.responseText === "No") {
-      			var neg = document.createElement("p");
-      			neg.innerHTML = "This account already exists";
-      			child.innerHTML = neg.innerHTML;                         // Negate account creation
-      			header.innerHTML = "Account not created!";
-    		} else {
-				var parEmail = document.createElement("p");
-				var parPass = document.createElement("p");
-				var group = document.createElement("div");
-				parEmail.innerHTML = "Your email is: " + email.value;
-				parPass.innerHTML = "Your password is: " + pass.value;
-				group.appendChild(parEmail);
-				group.appendChild(parPass);
-				child.innerHTML = group.innerHTML;  				   // Confirm the account creation
-				header.innerHTML = "Account created!";
-			}
-		}
-  	};
-	xhttp.open("POST", "http://localhost:8080", false);
-	xhttp.send(myJSON);  											  // Send email and pass
+	httpGetAsync("http://localhost:8080", myJSON, openProperPage);		// Send email and pass
+}
+
+function openProperPage(page) {
+	window.location.href = page;
 }
