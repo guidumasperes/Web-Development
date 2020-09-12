@@ -4,21 +4,45 @@ import json
 import pymongo
 
 def customize_user_created(e_mail, password):
-    fin = open("user_created/user_created.html", "rt")
-    fout = open("user_created/user_" + e_mail + "_created.html", "wt")
+    fin = open("user_created/user_created_template.html", "rt")
+    fout = open("user_created/user_created.html", "wt")
     for line in fin:
         fout.write(line.replace("?", e_mail))
     fin.close()
     fout.close()
-    fin = open("user_created/user_" + e_mail + "_created.html", "rt")
+    fin = open("user_created/user_created.html", "rt")
     data = fin.read()
     data = data.replace("#", password)
     fin.close()
-    fin = open("user_created/user_" + e_mail + "_created.html", "wt")
+    fin = open("user_created/user_created.html", "wt")
     fin.write(data)
     fin.close()
 
+def customize_user_cart(items):
+    print(items)
+    fin = open("carts/template_cart.html", "rt")
+    fout = open("carts/cart.html", "wt")
+    to_write = ""
+    for i in items:
+        to_write = to_write + "\t\t\t<li>" + i + "</li><button>Remove</button>\n"
+    print(to_write)
+    for line in fin:
+        fout.write(line.replace("%", to_write))
+    fin.close()
+    fout.close()
+
+def assign_cart_to_user(items, user_address):
+    global db
+    cart_col = db["Carts"]
+    user_col = db["Users"]
+    query = {"items": items, "user_address": user_address}
+    cart_col.insert_one(query)
+
 class HandleRequests(http.server.BaseHTTPRequestHandler):
+    def _set_headers(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
     def do_GET(self):
         self.send_response(200)
         if self.path == "/":
@@ -47,26 +71,25 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         global db
         if self.path.endswith("cart.html"):
+            print(self.client_address)
             content_len = int(self.headers.get('Content-Length')) # Make function to read content
             body = self.rfile.read(content_len)
             items = json.loads(body.decode('utf-8'))
             print(items)
-            self.send_response(200) # Make function to set header later
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write("http://localhost:8080/cart.html".encode("utf-8"))
-        elif self.path.endswith("my_user_page.html"): # The same as POST to create user
+            self._set_headers()
+            customize_user_cart(items)
+            assign_cart_to_user(items, self.client_address) # The user with this IP and PORT is assigned to this cart
+            self.wfile.write("http://localhost:8080/carts/cart.html".encode("utf-8"))
+        elif self.path.endswith("user_page.html"): # The same as POST to create user
             print(self.client_address)
             content_len = int(self.headers.get('Content-Length'))
             body = self.rfile.read(content_len)
             user = json.loads(body.decode('utf-8'))
             col = db["Users"]
             query = {"email": user["e_mail"], "pass": user["password"]}
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
+            self._set_headers()
             if col.count_documents(query) == 1: # Exists in database
-                newvalues = {"$set": {"logged": "yes"}}
+                newvalues = {"$set": {"logged": "yes", "i_address": self.client_address}}
                 col.update_one(query, newvalues)
                 self.wfile.write("http://localhost:8080/user_page.html".encode("utf-8"))
             else:
@@ -79,16 +102,14 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
             print(new_user)
             col = db["Users"]
             query = {"email": new_user["e_mail"], "pass": new_user["password"]}
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
+            self._set_headers()
             if col.count_documents(query) == 1:
                 self.wfile.write("http://localhost:8080/user_not_created.html".encode("utf-8"))
             else:
-                query = {"email": new_user["e_mail"], "pass": new_user["password"], "logged": "no"}
+                query = {"email": new_user["e_mail"], "pass": new_user["password"], "logged": "no", "i_address": self.client_address}
                 col.insert_one(query)
                 customize_user_created(new_user["e_mail"], new_user["password"])
-                self.wfile.write(bytes("http://localhost:8080/user_created/user_" + new_user["e_mail"] + "_created.html", "utf-8"))
+                self.wfile.write(bytes("http://localhost:8080/user_created/user_created.html", "utf-8"))
 
 def main():
     global db

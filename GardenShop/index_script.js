@@ -21,7 +21,7 @@ function accessCart() {
 	console.log(cart);
 	var myJSON = JSON.stringify(cart);
 	console.log(myJSON);
-	httpGetAsync("http://localhost:8080/cart.html", myJSON, openProperPage);
+	httpGetAsync("http://localhost:8080/carts/cart.html", myJSON, openProperPage);
 }
 
 //Function to make HTTP requests

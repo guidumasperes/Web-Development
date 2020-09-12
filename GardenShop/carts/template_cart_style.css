@@ -1,0 +1,47 @@
+/*Tags style*/
+.header {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+button {
+	border-radius: 10px;
+	height: 40px;
+	width: 90px;
+}
+
+header {
+	background-color: AliceBlue;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+	font-family: Lucida Console;
+	background-color: #e0ece4;
+}
+
+.option {
+	float: right;
+}
+
+.option a {
+	display: block;
+	color: #66bfbf;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+/*Tags transitions*/
+.option a:hover {
+	background-color: #e0ece4;
+}
+
+/*Class style*/
+.logo {
+	float: left;
+	padding: 14px 16px;
+}
