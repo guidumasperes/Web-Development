@@ -3,7 +3,7 @@ function loginPage() {
 	var pass = document.getElementById("pass");
 	var myObj = {e_mail: email.value, password: pass.value};
 	var myJSON = JSON.stringify(myObj);
-	httpGetAsync("http://localhost:8080/auth", myJSON, openProperPage);
+	httpGetAsync("http://localhost:8080/my_user_page.html", myJSON, openProperPage);
 }
 
 function httpGetAsync(url, info, callback) {

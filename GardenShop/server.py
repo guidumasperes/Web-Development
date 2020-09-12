@@ -46,8 +46,16 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
                 f.close()
     def do_POST(self):
         global db
-        if self.path.endswith("auth"): # The same as POST to create user
-            print("preparing to answer!!!")
+        if self.path.endswith("cart.html"):
+            content_len = int(self.headers.get('Content-Length')) # Make function to read content
+            body = self.rfile.read(content_len)
+            items = json.loads(body.decode('utf-8'))
+            print(items)
+            self.send_response(200) # Make function to set header later
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write("http://localhost:8080/cart.html".encode("utf-8"))
+        elif self.path.endswith("my_user_page.html"): # The same as POST to create user
             print(self.client_address)
             content_len = int(self.headers.get('Content-Length'))
             body = self.rfile.read(content_len)
