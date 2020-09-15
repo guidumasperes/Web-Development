@@ -3,6 +3,17 @@ import socketserver
 import json
 import pymongo
 
+#TO DO:
+#1)Logout feature (OK)
+#2)Check if user is logged before buying
+#3)Customized user_page
+#4)Negation page
+#5)Add responsive designs
+#6)Add user home address to database in "Users" to make things more realistic
+#7)Remove from cart
+#8)Order
+#9)Add a history of orders to user_page
+
 def customize_user_created(e_mail, password):
     fin = open("user_created/user_created_template.html", "rt")
     fout = open("user_created/user_created.html", "wt")
@@ -34,7 +45,6 @@ def customize_user_cart(items):
 def assign_cart_to_user(items, user_address):
     global db
     cart_col = db["Carts"]
-    user_col = db["Users"]
     query = {"items": items, "user_address": user_address}
     cart_col.insert_one(query)
 
@@ -70,7 +80,7 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
                 f.close()
     def do_POST(self):
         global db
-        if self.path.endswith("cart.html"):
+        if self.path.endswith("cart.html"): # Cart feature
             print(self.client_address)
             content_len = int(self.headers.get('Content-Length')) # Make function to read content
             body = self.rfile.read(content_len)
@@ -78,9 +88,9 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
             print(items)
             self._set_headers()
             customize_user_cart(items)
-            assign_cart_to_user(items, self.client_address) # The user with this IP and PORT is assigned to this cart
+            assign_cart_to_user(items, self.client_address[0]) # The user with this IP is assigned to this cart
             self.wfile.write("http://localhost:8080/carts/cart.html".encode("utf-8"))
-        elif self.path.endswith("user_page.html"): # The same as POST to create user
+        elif self.path.endswith("user_page.html"): # Login feature, the same as POST to create user
             print(self.client_address)
             content_len = int(self.headers.get('Content-Length'))
             body = self.rfile.read(content_len)
@@ -89,12 +99,20 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
             query = {"email": user["e_mail"], "pass": user["password"]}
             self._set_headers()
             if col.count_documents(query) == 1: # Exists in database
-                newvalues = {"$set": {"logged": "yes", "i_address": self.client_address}}
+                newvalues = {"$set": {"logged": "yes", "i_address": self.client_address[0]}}
                 col.update_one(query, newvalues)
                 self.wfile.write("http://localhost:8080/user_page.html".encode("utf-8"))
             else:
                 self.wfile.write("http://localhost:8080/negate.html".encode("utf-8"))
-        else:
+        elif self.path.endswith("logout_page.html"): # Logout
+            print(self.client_address)
+            col = db["Users"]
+            query = {"i_address": self.client_address[0]}
+            newvalues = {"$set": {"logged": "no"}}
+            col.update_one(query, newvalues)
+            self._set_headers()
+            self.wfile.write("http://localhost:8080/logout_page.html".encode("utf-8"))
+        else: # Create account feature
             content_len = int(self.headers.get('Content-Length'))
             post_body = self.rfile.read(content_len)
             print(post_body)
@@ -106,7 +124,7 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
             if col.count_documents(query) == 1:
                 self.wfile.write("http://localhost:8080/user_not_created.html".encode("utf-8"))
             else:
-                query = {"email": new_user["e_mail"], "pass": new_user["password"], "logged": "no", "i_address": self.client_address}
+                query = {"email": new_user["e_mail"], "pass": new_user["password"], "logged": "no", "i_address": self.client_address[0]}
                 col.insert_one(query)
                 customize_user_created(new_user["e_mail"], new_user["password"])
                 self.wfile.write(bytes("http://localhost:8080/user_created/user_created.html", "utf-8"))
