@@ -5,14 +5,24 @@ import pymongo
 
 #TO DO:
 #1)Logout feature (OK)
-#2)Check if user is logged before buying
+#2)Check if user is logged before buying (OK)
 #3)Customized user_page
 #4)Negation page
 #5)Add responsive designs
 #6)Add user home address to database in "Users" to make things more realistic
-#7)Remove from cart
+#7)Remove from cart (OK)
 #8)Order
 #9)Add a history of orders to user_page
+#10)Total order
+#11)Review code and add pertinent comments
+
+def check_logged(cli_address):
+    col = db["Users"]
+    query = {"logged": "yes", "i_address": cli_address}
+    if col.count_documents(query) == 1:
+        return True
+    else:
+        return False
 
 def customize_user_created(e_mail, password):
     fin = open("user_created/user_created_template.html", "rt")
@@ -30,13 +40,11 @@ def customize_user_created(e_mail, password):
     fin.close()
 
 def customize_user_cart(items):
-    print(items)
     fin = open("carts/template_cart.html", "rt")
     fout = open("carts/cart.html", "wt")
     to_write = ""
     for i in items:
-        to_write = to_write + "\t\t\t<li>" + i + "</li><button>Remove</button>\n"
-    print(to_write)
+        to_write = to_write + "\t\t\t<li>" + i + "</li>\n\t\t\t<button onClick='" + i + "Removal()'>Remove</button>\n"
     for line in fin:
         fout.write(line.replace("%", to_write))
     fin.close()
@@ -45,8 +53,13 @@ def customize_user_cart(items):
 def assign_cart_to_user(items, user_address):
     global db
     cart_col = db["Carts"]
-    query = {"items": items, "user_address": user_address}
-    cart_col.insert_one(query)
+    query = {"user_address": user_address}
+    if cart_col.count_documents(query) == 1: #Then substitute the cart
+        newvalues = {"$set": {"items": items}}
+        cart_col.update_one(query, newvalues)
+    else:
+        query = {"items": items, "user_address": user_address}
+        cart_col.insert_one(query)
 
 class HandleRequests(http.server.BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -74,22 +87,45 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
                 else:
                     self.send_header("Content-type", "text/javascript")
                 path = self.path[1:]
+                if self.path.endswith("login_page.html"):
+                    if check_logged(self.client_address[0]):
+                        path = "user_page.html"
                 self.end_headers()
                 f = open(path, "rb") # We need to read in bytes, to send bytes
                 self.wfile.write(f.read())
                 f.close()
     def do_POST(self):
         global db
-        if self.path.endswith("cart.html"): # Cart feature
+        if self.path.endswith("updated_cart.html"): # Remove feature
+            content_len = int(self.headers.get('Content-Length'))
+            body = self.rfile.read(content_len)
+            rem = json.loads(body.decode('utf-8'))
+            print(rem)
+            col = db["Carts"]
+            query = {"user_address": self.client_address[0]}
+            user_data = col.find(query)
+            result = user_data[0]
+            cart = result["items"]
+            print(cart)
+            cart.remove(rem[0])
+            newvalues = {"$set": {"items": cart}}
+            col.update_one(query, newvalues)
+            self._set_headers()
+            customize_user_cart(cart)
+            self.wfile.write("http://localhost:8080/carts/cart.html".encode("utf-8"))
+        elif self.path.endswith("cart.html"): # Cart feature
             print(self.client_address)
             content_len = int(self.headers.get('Content-Length')) # Make function to read content
             body = self.rfile.read(content_len)
             items = json.loads(body.decode('utf-8'))
             print(items)
             self._set_headers()
-            customize_user_cart(items)
-            assign_cart_to_user(items, self.client_address[0]) # The user with this IP is assigned to this cart
-            self.wfile.write("http://localhost:8080/carts/cart.html".encode("utf-8"))
+            if check_logged(self.client_address[0]):
+                customize_user_cart(items)
+                assign_cart_to_user(items, self.client_address[0]) # The user with this IP is assigned to this cart
+                self.wfile.write("http://localhost:8080/carts/cart.html".encode("utf-8"))
+            else:
+                self.wfile.write("http://localhost:8080/carts/error_cart.html".encode("utf-8"))
         elif self.path.endswith("user_page.html"): # Login feature, the same as POST to create user
             print(self.client_address)
             content_len = int(self.headers.get('Content-Length'))
